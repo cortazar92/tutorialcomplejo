@@ -1,0 +1,131 @@
+
+\section{Exploración Univariada}\label{univariada}
+
+
+En esta sección nos interesa explorar cada indice (IDH), para esto se realizan varias estadisticas con la información obtenida. En primer lugar, se evalua el numero de datos y la mediana de cada uno de los tipos de población.En la tabla \ref{stats} en la página \pageref{stats}.
+
+
+
+<<getData, echo=FALSE>>=
+# carga de datos y análisis de la tabla
+filename="colombia.csv"
+colb=read.csv(filename, stringsAsFactors = FALSE)
+colb<-data.frame(colb)
+colb$cabecera= colb$Poblacion.Cabecera*1
+colb$resto=colb$Poblacion.Resto*1
+colb$total=colb$Poblacion.Total*1
+colb$Poblacion.Cabecera=NULL
+colb$Poblacion.Resto=NULL
+colb$Poblacion.Total=NULL
+@
+
+
+<<estadistica, echo=F,results=tex>>=
+library(stargazer)
+vars1 <- colb[, c(2:5)]
+
+stargazer(vars1,title = "Medidas estadísticas", label = "stats",summary.stat = c("n", "median"))
+@
+
+Para resaltar lo anterior, tenemos la Figura \ref{histograma} en la página \pageref{histograma}. 
+
+
+%%%%% figure
+\begin{figure}[h]
+\centering
+<<histograma, echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+
+hist(colb$resto, col= "royalblue" ,main="Histograma población resto ",ylab="Frecuencia")
+hist(colb$cabecera, col= "royalblue" ,main="Histograma población cabecera ",ylab="Frecuencia")
+hist(colb$IDH, col= "royalblue" ,main="Histograma IDH ",ylab="Frecuencia")
+@
+\caption{Histograma del IDH }
+\label{histograma}
+\end{figure}
+
+
+Como las poblaciones tienen un sesgo se normalizan los datos con log, el histograma de estos nuevos datos se muestra en la Figura \ref{normal} en la página \pageref{normal}.
+
+\begin{figure}[h]
+\centering
+\begin{adjustbox}{height=4cm}
+<<normal, echo=FALSE, fig=TRUE>>=
+par(mfrow=c(1,2))
+colb$cabeLog=log(colb$cabecera)
+colb$restoLog=log(colb$resto)
+colb$totalLog=log(colb$total)
+
+hist(colb$cabeLog, col= "royalblue" ,main="Histograma cabecera normalizado ",ylab="Frecuencia")
+hist(colb$restoLog, col= "royalblue" ,main="Histograma resto normalizado ",ylab="Frecuencia")
+@
+\end{adjustbox}
+\caption{Histograma de poblaciones }
+\label{normal}
+\end{figure}
+
+
+\section{Exploración Bivariada}\label{bivariada}
+
+
+en esta sección nos interesa ver el impacto que tiene la población en el IDH, para esto se presenta en la tabla ref{corrDem} en la página \pageref{corrDem}. la correlación de las variables normalizadas con respecto al IDH
+¿+}
+
+
+<<corrDem, results=tex, echo=FALSE>>=
+explanans=names(colb)[c(6:7)]
+corrDem=cor(colb[,1],colb[,explanans],
+            use = "na.or.complete")
+stargazer(corrDem, title="Correlación de Democracia con las demás variables",label = "corrDem")
+@
+
+
+
+Ademas, se muestra la correlación entre todas las variables independientes en la tabla \ref{corrTableX} en la página \pageref{corrTableX}
+
+<<corrTableX, results=tex, echo=FALSE>>=
+corrTableX=round(cor(colb[explanans],
+               use = "na.or.complete"),2)
+corrTableX_copy=corrTableX
+# Hide upper triangle
+
+corrTableX[upper.tri(corrTableX)]<-""
+
+stargazer(corrTableX, title="Correlación entre variables independientes",label = 'corrTableX')
+@
+
+los datos anteriores los puede ver visualmente en la figura  \ref{puntos} en la página \pageref{puntos}
+
+\begin{figure}[h]
+\centering
+<<puntos, echo=FALSE, fig=TRUE>>=
+plot(colb[,explanans], col="royalblue")
+@
+\caption{correlación entre cabelog y restolog }
+\label{puntos}
+\end{figure}
+
+
+
+
+\section{Modelos de Regresión}
+
+Finalmente, vemos los modelos propuestos. En cada una se evalua la variable independiente DIH con cada una de las categorias de la población. Los resultados se muestran en la Tabla \ref{regresiones} de la página \pageref{regresiones}.
+
+<<regresiones, echo=false>>=
+LinRegA = lm(IDH ~ cabeLog, data = colb)
+LinRegB = lm(IDH ~ restoLog, data = colb)
+LinRegC = lm(IDH ~ totalLog, data = colb)
+@
+
+<<regresionesPlot,results=tex, echo=false>>=
+stargazer(LinRegA,LinRegB, LinRegC,
+         title = "Modelos de Regresión", 
+          label = "regresiones")
+@
+
+
+
+
+
+\endinput
